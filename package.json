@@ -7,6 +7,7 @@
     "start:frontend": "cd frontend && npm start",
     "start:backend": "cd backend && npm run dev",
     "build": "cd frontend && npm install && CI=false npm run build",
-    "vercel-build": "cd frontend && npm install && CI=false npm run build"
+    "vercel-build": "cd frontend && npm install && CI=false npm run build",
+    "postinstall": "cd frontend && npm install && cd ../backend && npm install"
   }
 }
