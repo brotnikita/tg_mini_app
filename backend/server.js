@@ -63,9 +63,9 @@ bot.onText(/\/start/, async (msg) => {
 
 // Middleware
 app.use(cors({
-  origin: process.env.NODE_ENV === 'production' 
-    ? 'https://brot-tg-web.vercel.app'
-    : 'http://localhost:3000'
+  origin: ['https://brot-tg-web.vercel.app', 'http://localhost:3000'],
+  methods: ['GET', 'POST'],
+  credentials: true
 }));
 app.use(express.json());
 
