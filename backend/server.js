@@ -62,7 +62,11 @@ bot.onText(/\/start/, async (msg) => {
 });
 
 // Middleware
-app.use(cors());
+app.use(cors({
+  origin: process.env.NODE_ENV === 'production' 
+    ? 'https://brot-tg-web.vercel.app'
+    : 'http://localhost:3000'
+}));
 app.use(express.json());
 
 // Request logging middleware
@@ -80,8 +84,11 @@ app.get("/health", (req, res) => {
   });
 });
 
+// Update routes to use /api prefix in production
+const apiPrefix = process.env.NODE_ENV === 'production' ? '/api' : '';
+
 // Handle data from Mini App
-app.post("/send-data", async (req, res) => {
+app.post(`${apiPrefix}/send-data`, async (req, res) => {
   try {
     console.log("Received data:", req.body);
     

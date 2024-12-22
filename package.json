@@ -1,20 +1,12 @@
 {
-  "name": "brot_tg_web",
+  "name": "telegram-mini-app",
   "version": "1.0.0",
-  "description": "This is a Telegram Mini App project with React frontend and Node.js backend.",
-  "main": "index.js",
+  "description": "Telegram Mini App with React frontend and Node.js backend",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
-  },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
-  "dependencies": {
-    "@twa-dev/sdk": "^8.0.1",
-    "axios": "^1.7.9",
-    "body-parser": "^1.20.3",
-    "cors": "^2.8.5",
-    "dotenv": "^16.4.7",
-    "express": "^4.21.2"
+    "start": "cd backend && npm start",
+    "start:frontend": "cd frontend && npm start",
+    "start:backend": "cd backend && npm run dev",
+    "build": "cd frontend && npm install && npm run build",
+    "install:all": "npm install && cd frontend && npm install && cd ../backend && npm install"
   }
 }

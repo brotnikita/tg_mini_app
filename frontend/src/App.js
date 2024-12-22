@@ -11,9 +11,11 @@ function App() {
     document.body.style.backgroundColor = WebApp.themeParams.bg_color || "#ffffff";
   }, []);
 
+  const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000';
+
   const sendDataToBackend = () => {
     axios
-      .post("http://localhost:5000/send-data", { message: "Hello, Backend!" })
+      .post(`${API_URL}/send-data`, { message: "Hello, Backend!" })
       .then((response) => {
         console.log("Data sent successfully:", response.data);
       })
