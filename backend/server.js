@@ -3,42 +3,62 @@ const express = require('express');
 const cors = require('cors');
 const TelegramBot = require('node-telegram-bot-api');
 
+// Constants
 const app = express();
 const PORT = process.env.PORT || 5000;
 const BOT_TOKEN = process.env.BOT_API_TOKEN;
+const ALLOWED_ORIGINS = [process.env.FRONTEND_URL, 'http://localhost:3000'];
 
-// Validate environment variables
-if (!BOT_TOKEN) {
-  console.error('BOT_API_TOKEN is not set in environment variables');
-  process.exit(1);
-}
+/**
+ * Environment validation
+ * Checks if required environment variables are set
+ */
+const validateEnvironment = () => {
+  const requiredVars = {
+    'BOT_API_TOKEN': BOT_TOKEN,
+    'FRONTEND_URL': process.env.FRONTEND_URL
+  };
 
-if (!process.env.FRONTEND_URL) {
-  console.error('FRONTEND_URL is not set in environment variables');
-  process.exit(1);
-}
+  for (const [name, value] of Object.entries(requiredVars)) {
+    if (!value) {
+      console.error(`${name} is not set in environment variables`);
+      process.exit(1);
+    }
+  }
+};
 
-// Initialize Telegram Bot with error handling
-let bot;
-try {
-  bot = new TelegramBot(BOT_TOKEN, { polling: true });
-  console.log('Telegram bot successfully initialized');
-} catch (error) {
-  console.error('Failed to initialize Telegram bot:', error);
-  process.exit(1);
-}
+validateEnvironment();
+
+/**
+ * Initialize Telegram Bot
+ * Sets up the bot with error handling and polling
+ */
+const initializeBot = () => {
+  try {
+    const bot = new TelegramBot(BOT_TOKEN, { polling: true });
+    console.log('Telegram bot successfully initialized');
+    return bot;
+  } catch (error) {
+    console.error('Failed to initialize Telegram bot:', error);
+    process.exit(1);
+  }
+};
+
+const bot = initializeBot();
 
 // Handle bot polling errors
 bot.on('polling_error', (error) => {
   console.error('Bot polling error:', error);
 });
 
-// Handle /start command with error handling
+/**
+ * Handle /start command
+ * Creates a keyboard with Web App button and sends welcome message
+ */
 bot.onText(/\/start/, async (msg) => {
   const chatId = msg.chat.id;
   
   try {
-    // Create keyboard with Web App button
     const keyboard = {
       keyboard: [
         [{
@@ -61,42 +81,53 @@ bot.onText(/\/start/, async (msg) => {
   }
 });
 
-// Middleware
+// Middleware setup
 app.use(cors({
-  origin: ['https://tg-mini-aaxpuq78e-brotnikitas-projects.vercel.app', 'http://localhost:3000'],
+  origin: ALLOWED_ORIGINS,
   methods: ['GET', 'POST'],
   credentials: true
 }));
 app.use(express.json());
 
-// Request logging middleware
+// Request logging middleware with timestamp
 app.use((req, res, next) => {
-  console.log(`${new Date().toISOString()} - ${req.method} ${req.path}`);
+  const timestamp = new Date().toISOString();
+  console.log(`[${timestamp}] ${req.method} ${req.path}`);
   next();
 });
 
-// Health check endpoint
+/**
+ * Health check endpoint
+ * Returns server status and bot availability
+ */
 app.get("/health", (req, res) => {
   res.json({ 
     status: 'ok',
     timestamp: new Date().toISOString(),
-    botActive: !!bot
+    botActive: !!bot,
+    environment: process.env.NODE_ENV
   });
 });
 
-// Update routes to use /api prefix in production
+// API prefix for production environment
 const apiPrefix = process.env.NODE_ENV === 'production' ? '/api' : '';
 
-// Handle data from Mini App
+/**
+ * Handle data from Mini App
+ * Validates and processes incoming data
+ */
 app.post(`${apiPrefix}/send-data`, async (req, res) => {
+  const timestamp = new Date().toISOString();
+  
   try {
-    console.log("Received data:", req.body);
+    console.log(`[${timestamp}] Received data:`, req.body);
     
-    // Validate request body
-    if (!req.body || !req.body.message) {
+    // Input validation
+    if (!req.body?.message) {
       return res.status(400).json({ 
         error: "Bad Request", 
-        message: "Request body must contain a 'message' field" 
+        message: "Request body must contain a 'message' field",
+        timestamp
       });
     }
 
@@ -105,30 +136,35 @@ app.post(`${apiPrefix}/send-data`, async (req, res) => {
 
     res.status(200).json({ 
       message: "Data received successfully!",
-      timestamp: new Date().toISOString()
+      timestamp
     });
   } catch (error) {
-    console.error("Error processing data:", error);
+    console.error(`[${timestamp}] Error processing data:`, error);
     res.status(500).json({ 
       error: "Internal server error",
-      message: error.message 
+      message: process.env.NODE_ENV === 'development' ? error.message : 'Internal server error',
+      timestamp
     });
   }
 });
 
-// Error handling middleware
+// Global error handling middleware
 app.use((err, req, res, next) => {
-  console.error(`${new Date().toISOString()} - Error:`, err);
+  const timestamp = new Date().toISOString();
+  console.error(`[${timestamp}] Error:`, err);
+  
   res.status(500).json({ 
     error: "Something went wrong!",
-    message: process.env.NODE_ENV === 'development' ? err.message : 'Internal server error'
+    message: process.env.NODE_ENV === 'development' ? err.message : 'Internal server error',
+    timestamp
   });
 });
 
-// Start server with error handling
+// Server initialization with error handling
 const server = app.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}`);
   console.log(`Frontend URL: ${process.env.FRONTEND_URL}`);
+  console.log(`Environment: ${process.env.NODE_ENV}`);
 });
 
 // Handle server errors
@@ -137,11 +173,17 @@ server.on('error', (error) => {
   process.exit(1);
 });
 
-// Handle process termination
+// Graceful shutdown handling
 process.on('SIGTERM', () => {
   console.log('SIGTERM received. Shutting down gracefully...');
   server.close(() => {
     console.log('Server closed');
     process.exit(0);
   });
+});
+
+// Handle uncaught exceptions
+process.on('uncaughtException', (error) => {
+  console.error('Uncaught Exception:', error);
+  process.exit(1);
 }); 

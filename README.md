@@ -1,24 +1,5 @@
 # Telegram Mini App
 
-## Deployment
-
-### Vercel Setup
-1. Connect your GitHub repository to Vercel
-2. Set environment variables in Vercel:
-   - `BOT_API_TOKEN`
-   - `NODE_ENV=production`
-   - `FRONTEND_URL=https://brot-tg-web.vercel.app`
-3. Deploy
-
-### Development
-- Frontend: `npm run start:frontend`
-- Backend: `npm run start:backend`
-
-### Production Build
-```bash
-npm run build
-```
-
 ## Project Structure
 - `backend/` - Node.js backend server
 - `frontend/` - React frontend application
@@ -46,8 +27,9 @@ The frontend will run on http://localhost:3000
 ## Environment Variables
 The `.env` file in the root directory contains:
 - `PORT`: Backend server port (5000)
-- `FRONTEND_URL`: Frontend application URL (http://localhost:3000)
+- `FRONTEND_URL`: Frontend application URL
 - `BOT_API_TOKEN`: Your Telegram Bot API token
+- `NODE_ENV`: Environment mode (development/production)
 
 ## Important Notes
 - Make sure to run both servers simultaneously
