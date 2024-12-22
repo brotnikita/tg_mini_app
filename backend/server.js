@@ -63,7 +63,7 @@ bot.onText(/\/start/, async (msg) => {
 
 // Middleware
 app.use(cors({
-  origin: ['https://tg-mini-app.vercel.app', 'http://localhost:3000'],
+  origin: ['https://tg-mini-aaxpuq78e-brotnikitas-projects.vercel.app', 'http://localhost:3000'],
   methods: ['GET', 'POST'],
   credentials: true
 }));
